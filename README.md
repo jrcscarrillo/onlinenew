@@ -1,1 +1,2 @@
 onlinenew
+This application has the following features: Create invoices, credit memos, shipping lists, vendor credit, and then synchronize the data with Quickbooks. The web app synchronizes the data with Quickbooks.

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/C:/wamp64/www/onlinenew/app/views/layouts/main.volt</file>
+            <file>file:/C:/wamp64/www/onlinenew/app/forms/VentaCabeceraForm.php</file>
+            <file>file:/C:/wamp64/www/onlinenew/public/js/utils.js</file>
+            <file>file:/C:/wamp64/www/onlinenew/app/library/ValidaGuia.php</file>
+            <file>file:/C:/wamp64/www/onlinenew/app/views/ventas/productos.volt</file>
+            <file>file:/C:/wamp64/www/onlinenew/app/views/layouts/cabecera.volt</file>
+            <file>file:/C:/wamp64/www/onlinenew/app/views/ventas/cabecera.volt</file>
+            <file>file:/C:/wamp64/www/onlinenew/app/library/Claves.php</file>
+            <file>file:/C:/wamp64/www/onlinenew/app/forms/ContribuyenteForm.php</file>
+            <file>file:/C:/wamp64/www/onlinenew/app/views/customer/search.volt</file>
+            <file>file:/C:/wamp64/www/onlinenew/app/views/modelos/search.volt</file>
+            <file>file:/C:/wamp64/www/onlinenew/app/forms/PedidosForm.php</file>
+            <file>file:/C:/wamp64/www/onlinenew/app/controllers/VentasController.php</file>
+        </group>
+    </open-files>
+</project-private>
