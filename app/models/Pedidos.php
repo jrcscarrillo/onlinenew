@@ -2,31 +2,31 @@
 
 class Pedidos extends \Phalcon\Mvc\Model {
 
-    protected $TxnID;   // (normal Attribute)
-    protected $TimeCreated;   // (normal Attribute)
-    protected $TimeModified;   // (normal Attribute)
-    protected $EditSequence;   // (normal Attribute)
-    protected $TxnNumber;   // (normal Attribute)
-    protected $CustomerRef_ListID;   // (normal Attribute)
-    protected $CustomerRef_FullName;   // (normal Attribute)
-    protected $TxnDate;   // (normal Attribute)
-    protected $RefNumber;   // (normal Attribute)
-    protected $PONumber;   // (normal Attribute)
-    protected $TermsRef_ListID;   // (normal Attribute)
-    protected $TermsRef_FullName;   // (normal Attribute)
-    protected $DueDate;   // (normal Attribute)
-    protected $SalesRepRef_ListID;   // (normal Attribute)
-    protected $SalesRepRef_FullName;   // (normal Attribute)
-    protected $Subtotal;   // (normal Attribute)
-    protected $SalesTaxTotal;   // (normal Attribute)
-    protected $TotalAmount;   // (normal Attribute)
-    protected $IsManuallyClosed;   // (normal Attribute)
-    protected $IsFullyInvoiced;   // (normal Attribute)
-    protected $Memo;   // (normal Attribute)
-    protected $CustomerMsgRef_ListID;   // (normal Attribute)
-    protected $CustomerMsgRef_FullName;   // (normal Attribute)
-    protected $Other;   // (normal Attribute)
-    protected $Status;   // (normal Attribute)
+    protected $TxnID;   
+    protected $TimeCreated;   
+    protected $TimeModified;   
+    protected $EditSequence;   
+    protected $TxnNumber;   
+    protected $CustomerRef_ListID;   
+    protected $CustomerRef_FullName;   
+    protected $TxnDate;   
+    protected $RefNumber;   
+    protected $PONumber;   
+    protected $TermsRef_ListID;   
+    protected $TermsRef_FullName;   
+    protected $DueDate;   
+    protected $SalesRepRef_ListID;   
+    protected $SalesRepRef_FullName;   
+    protected $Subtotal;   
+    protected $SalesTaxTotal;   
+    protected $TotalAmount;   
+    protected $IsManuallyClosed;   
+    protected $IsFullyInvoiced;   
+    protected $Memo;   
+    protected $CustomerMsgRef_ListID;   
+    protected $CustomerMsgRef_FullName;   
+    protected $Other;   
+    protected $Status;   
 
 // **********************
 // GETTER METHODS

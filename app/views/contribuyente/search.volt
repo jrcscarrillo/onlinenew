@@ -32,8 +32,8 @@
     <div class="container-fluid">
         <div class="col-xs-12">
             <table class="table table-responsive table-bordered table-striped table-hover w-auto" align="center">
-                <thead class="thead-dark font-weight-bold">
-                    <tr>
+                <thead class="font-weight-bold">
+                    <tr class="table-warning">
                         <th class="lead">Ruc</th>
                         <th class="lead">Razon</th>
                         <th class="lead">NombreComercial</th>
@@ -62,9 +62,9 @@
                                 <td>{{ contribuyente.Ambiente }}</td>
                                 <td>{{ contribuyente.Emision }}</td>
 
-                                <td width="2%">{{ link_to("contribuyente/edit/"~contribuyente.Id, '<i class="fa fa-pencil-square-o" aria-hidden="true" style="font-size:24px;color:green;"></i>') }}</td>
-                                <td width="2%">{{ link_to("contribuyente/delete/"~contribuyente.Id, '<i class="fa fa-trash-o" aria-hidden="true" style="font-size:24px;color:green;"></i>') }}</td>
-                                <td width="2%">{{ link_to("contribuyente/seleccion/"~contribuyente.Id, '<i class="fa fa-check-circle-o" aria-hidden="true"  style="font-size:24px;color:green;"></i>') }}</td>
+                                <td style="text-align:center;">{{ link_to("contribuyente/edit/"~contribuyente.Id, '<i class="fa fa-pencil-square-o" aria-hidden="true" style="font-size:24px;color:green;"></i>') }}</td>
+                                <td style="text-align:center;">{{ link_to("contribuyente/delete/"~contribuyente.Id, '<i class="fa fa-trash-o" aria-hidden="true" style="font-size:24px;color:green;"></i>') }}</td>
+                                <td style="text-align:center;">{{ link_to("contribuyente/seleccion/"~contribuyente.Id, '<i class="fa fa-check-circle-o" aria-hidden="true"  style="font-size:24px;color:green;"></i>') }}</td>
                             </tr>
                         {% endfor %}
                     {% else %}

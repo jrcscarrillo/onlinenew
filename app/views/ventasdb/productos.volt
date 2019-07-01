@@ -8,7 +8,7 @@
         <div class="l-row">
             <div class="l-col-6">
                 <div class="form-body pad-0">        
-                    {{ form('ventas/masproductos/' ~ ticket.RefNumber, 'id':'consumo')}}
+                    {{ form('ventasdb/masproductos/' ~ ticket.RefNumber, 'id':'consumo')}}
                     <fieldset>
                         <legend> Productos </legend>
                         <div class="l-row">
@@ -56,7 +56,7 @@
             </div> <!-- end col -->    
             <div class="l-col-6">
                 <div class="form-body pad-0">
-                    {{ form('ventas/cliente/' ~ ticket.RefNumber, 'id':'cliente')}}
+                    {{ form('ventasdb/cliente/' ~ ticket.RefNumber, 'id':'cliente')}}
                     <fieldset>
                         <legend> Caja </legend>
 
@@ -146,7 +146,7 @@
                                         {% endif %}
                                     <tbody>
                                 </table>
-                                {{ link_to("ventas/facturar/" ~ ticket.RefNumber, 'Facturar', "class": "btn btn-info") }}
+                                {{ link_to("ventasdb/facturar/" ~ ticket.RefNumber, 'Facturar', "class": "btn btn-info") }}
 
                             </div>
                         </div>
@@ -165,8 +165,8 @@
         <div class="l-row">
 
             <div class="l-col-12">
-                <div class="form-body">
-                    {{ form("ventas/index") }}
+                <div class="form-body pad-0">
+                    {{ form("ventasdb/index") }}
                     <fieldset>
                         <legend> FACTURA </legend>
                         <section>

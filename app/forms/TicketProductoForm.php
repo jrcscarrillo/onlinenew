@@ -20,10 +20,13 @@ class TicketProductoForm extends Form {
         ));
         $this->add($qty);
 
+                // array("28" => "Servicios", "29" => "Inventarios", "30" => "No inventario",  "31" => "Terminado",  "32" => "Activo Fijo",  "33" => "Otros"));
+        $tipofactura = $this->session->get('tipofactura');
+        $destipo = $tipofactura['destipo'];
         $item = Items::find([
             "columns" => "sales_desc, quickbooks_listid",
-            "conditions" => "parent_reference_full_name LIKE ?1",
-            "bind"       => [1 => "%Helados%"]
+            "conditions" => "type = ?1",
+            "bind"       => [1 => $destipo]
            ]); 
         $ItemRefListID = new Select(
            'ItemRefListID',

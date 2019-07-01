@@ -3,7 +3,9 @@
     <div class="site-container">
         <div class="container-fluid">
             <nav class="navbar navbar-light navbar-expand-md bg-faded justify-content-center">
-                <a href="/" class="navbar-brand d-flex w-50 mr-auto">Cooperativa</a>
+                <a class="navbar-brand" href="#">
+                    <img src="https://carrillosteam.com/public/img/aurora.png?text=Logo" alt="">
+                </a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsingNavbar3">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -30,7 +32,7 @@
                 </div>
                 <!-- LAYER 02 -->
                 <div class="tp-caption" data-frames='[{"delay":900,"speed":2000,"from":"y:40;o:0;","ease":"easeInOutExpo"},{"delay":"wait","speed":500,"to":"o:0;","ease":"easeInOutExpo"}]' data-x="center" data-y="['273', '313', '200', '260']">
-                    <h2><a href="service_calculator.html" title="Estimate Total Costs">FACTURACION ELECTRONICA</a></h2>
+                    <h2><a href="#" title="Aurora QB">FACTURACION ELECTRONICA</a></h2>
                 </div>
                 <!-- LAYER 03 -->
                 <div class="tp-caption" data-frames='[{"delay":1100,"speed":2000,"from":"y:40;o:0;","ease":"easeInOutExpo"},{"delay":"wait","speed":500,"to":"o:0;","ease":"easeInOutExpo"}]' data-x="center" data-y="['345', '368', '236', '290']">
@@ -39,7 +41,7 @@
                 <!-- LAYER 04 -->
                 <div class="tp-caption" data-frames='[{"delay":1500,"speed":1500,"from":"y:40;o:0;","ease":"easeInOutExpo"},{"delay":"wait","speed":500,"to":"o:0;","ease":"easeInOutExpo"}]' data-x="center" data-y="['476', '478', '304', '353']">
                     <div class="align-center">
-                        <a class="more" href="service_calculator.html" title="Service calculator">AMIGABLE</a>
+                        <a class="more" href="#" title="Aurora QB">AMIGABLE</a>
                     </div>
                 </div>
                 <!-- / -->
@@ -55,7 +57,7 @@
                 </div>
                 <!-- LAYER 02 -->
                 <div class="tp-caption customin customout" data-frames='[{"delay":900,"speed":2000,"from":"y:40;o:0;","ease":"easeInOutExpo"},{"delay":"wait","speed":500,"to":"o:0;","ease":"easeInOutExpo"}]' data-x="center" data-y="['273', '313', '200', '260']">
-                    <h2><a href="service_calculator.html" title="Estimate Total Costs">APLICACION INTEGRAL</a></h2>
+                    <h2><a href="#" title="Aurora QB">APLICACION INTEGRAL</a></h2>
                 </div>
                 <!-- LAYER 03 -->
                 <div class="tp-caption customin customout" data-frames='[{"delay":1100,"speed":2000,"from":"y:40;o:0;","ease":"easeInOutExpo"},{"delay":"wait","speed":500,"to":"o:0;","ease":"easeInOutExpo"}]' data-x="center" data-y="['345', '368', '236', '290']">
@@ -64,7 +66,7 @@
                 <!-- LAYER 04 -->
                 <div class="tp-caption customin customout" data-frames='[{"delay":1500,"speed":1500,"from":"y:40;o:0;","ease":"easeInOutExpo"},{"delay":"wait","speed":500,"to":"o:0;","ease":"easeInOutExpo"}]' data-x="center" data-y="['476', '478', '304', '353']">
                     <div class="align-center">
-                        <a class="more" href="service_calculator.html" title="Service calculator">SIMPLE DE USAR</a>
+                        <a class="more" href="#" title="Aurora QB">SIMPLE DE USAR</a>
                     </div>
                 </div>
                 <!-- / -->
@@ -81,7 +83,7 @@
                 </div>
                 <!-- LAYER 02 -->
                 <div class="tp-caption customin customout" data-frames='[{"delay":900,"speed":2000,"from":"y:40;o:0;","ease":"easeInOutExpo"},{"delay":"wait","speed":500,"to":"o:0;","ease":"easeInOutExpo"}]' data-x="center" data-y="['273', '313', '200', '260']">
-                    <h2><a href="service_calculator.html" title="Estimate Total Costs">Mejoramiento Continuo</a></h2>
+                    <h2><a href="#" title="Aurora QB">Mejoramiento Continuo</a></h2>
                 </div>
                 <!-- LAYER 03 -->
                 <div class="tp-caption customin customout" data-frames='[{"delay":1100,"speed":2000,"from":"y:40;o:0;","ease":"easeInOutExpo"},{"delay":"wait","speed":500,"to":"o:0;","ease":"easeInOutExpo"}]' data-x="center" data-y="['345', '368', '236', '290']">
@@ -90,7 +92,33 @@
                 <!-- LAYER 04 -->
                 <div class="tp-caption customin customout" data-frames='[{"delay":1500,"speed":1500,"from":"y:40;o:0;","ease":"easeInOutExpo"},{"delay":"wait","speed":500,"to":"o:0;","ease":"easeInOutExpo"}]' data-x="center" data-y="['476', '478', '304', '353']">
                     <div class="align-center">
-                        <a class="more" href="service_calculator.html" title="Service calculator">Estupendo</a>
+                        <a class="more" href="#" title="Aurora QB">Estupendo</a>
+                    </div>
+                </div>
+                <!-- / -->
+            </li>
+
+            <!-- SLIDE 4 -->
+            <li data-transition="fade" data-masterspeed="500" data-slotamount="1" data-delay="6000">
+                <!-- MAIN IMAGE -->
+                <img src="https://carrillosteam.com/public/coop/images/slider/aurora.jpg" alt="logoaurora" data-bgfit="cover">
+                <!-- LAYERS -->
+                <!-- LAYER 01 -->
+                <div class="tp-caption customin customout" data-frames='[{"delay":500,"speed":1500,"from":"y:-40;o:0;","ease":"easeInOutExpo"},{"delay":"wait","speed":500,"to":"o:0;","ease":"easeInOutExpo"}]' data-x="center" data-y="['211', '257', '160', '218']">
+                    <h4>El amanecer informatico</h4>
+                </div>
+                <!-- LAYER 02 -->
+                <div class="tp-caption customin customout" data-frames='[{"delay":900,"speed":2000,"from":"y:40;o:0;","ease":"easeInOutExpo"},{"delay":"wait","speed":500,"to":"o:0;","ease":"easeInOutExpo"}]' data-x="center" data-y="['273', '313', '200', '260']">
+                    <h2><a href="#" title="">Modelaje y Agilidad</a></h2>
+                </div>
+                <!-- LAYER 03 -->
+                <div class="tp-caption customin customout" data-frames='[{"delay":1100,"speed":2000,"from":"y:40;o:0;","ease":"easeInOutExpo"},{"delay":"wait","speed":500,"to":"o:0;","ease":"easeInOutExpo"}]' data-x="center" data-y="['345', '368', '236', '290']">
+                    <h2 class="slider-subtitle"><strong>SOMOS AURORA</strong></h2>
+                </div>
+                <!-- LAYER 04 -->
+                <div class="tp-caption customin customout" data-frames='[{"delay":1500,"speed":1500,"from":"y:40;o:0;","ease":"easeInOutExpo"},{"delay":"wait","speed":500,"to":"o:0;","ease":"easeInOutExpo"}]' data-x="center" data-y="['476', '478', '304', '353']">
+                    <div class="align-center">
+                        <a class="more" href="#" title="Aurora QB">Guau!</a>
                     </div>
                 </div>
                 <!-- / -->

@@ -28,7 +28,7 @@
                     </div>
                 </div>
 
-                <div class="form-body">
+                <div class="form-body pad-0">
                     {{ form('id':'cabecera')}}
 
                     <fieldset>

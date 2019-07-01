@@ -31,15 +31,15 @@
 
     <div class="container-fluid">
         <div class="col-xs-12">
-            <table class="coqueiros table-responsive table-bordered table-striped table-hover" align="center">
-                <thead class="coloreando" style="background-color: blue">
-                    <tr>
-                        <th width="30%">Nombre Comercial</th>
+            <table class="table table-responsive table-bordered table-striped table-hover w-auto" align="center">
+                <thead class="font-weight-bold">
+                    <tr class="table-warning">
+                        <th class="lead">Nombre Comercial</th>
                         <th width="30%">Direccion</th>
                         <th>Phone</th>
                         <th>Mobile</th>
                         <th>Email</th>
-                        <th>Numero Id</th>
+                        <th class="lead">RUC/Ced</th>
                         <th>Nuevo Pedido</th>
                         <th>Consulta Pedidos</th>
                     </tr>

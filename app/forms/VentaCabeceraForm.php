@@ -72,7 +72,11 @@ class VentaCabeceraForm extends Form {
         $numeroguia->setLabel("Numero Guia");
         $numeroguia->addValidators(array(
             new ValidaGuiaValidator(array(
-                'message' => 'El numero de la guia es acumulable a su emision'
+                'message' => 'El numero de la guia es erroneo',
+                'with' => 'tipoguia',
+                'Valida_28' => 'Error 28',
+                'Valida_29' => 'Error 29',
+                'Valida_30' => 'Error 30',
             ))
         ));
         $this->add($numeroguia);
@@ -90,7 +94,7 @@ class VentaCabeceraForm extends Form {
         $notacomprador = new TextArea("notacomprador");
         $notacomprador->setLabel("Nota Comprador");
         $notacomprador->setFilters(array('striptags', 'string'));
-        $referencia->addValidators(array(
+        $notacomprador->addValidators(array(
            new PresenceOf(array(
               'message' => 'Debe ingresar al menos n/a en notas al comprador'
               ))
@@ -110,7 +114,7 @@ class VentaCabeceraForm extends Form {
     /**
      * Prints messages for a specific element
      */
-    public function mensajes($nombre)
+    public function messages($nombre)
     {
         if ($this->hasMessagesFor($nombre)) {
             foreach ($this->getMessagesFor($nombre) as $mensaje) {

@@ -11,7 +11,8 @@ class VentasController extends ControllerBase {
         /**
          *      controlacceso revisa que este un usuario logeado, que el contribuyente este seleccionado
          *      que tenga una licencia valida
-         *      se le debe aumentar el seguimiento del proceso de ventas en la caja primaria y en la caja secundaria
+         *      que no tenga pendientes en la caja primaria y en la caja secundaria
+         *      @var session $pendiente
          */
         $estado = $this->claves->controlacceso();
         if ($estado === 'OK') {
@@ -29,7 +30,7 @@ class VentasController extends ControllerBase {
         if ($pendiente['estado'] === 'GRABADO') {
             $this->flash->notice('Tiene un pedido de venta sin cerrar' . ' ESTADO: ' . $pendiente['estado'] . ' NRO. PEDIDO: ' . $pendiente['RefNumber']);
             return $this->dispatcher->forward([
-                 'controller' => "ventas",
+                        'controller' => "ventas",
                         "action" => "cabecera",
                         "params" => [$pendiente['RefNumber']]
             ]);
@@ -46,7 +47,7 @@ class VentasController extends ControllerBase {
         $clave = $this->claves->guid();
         $fecha = date('Y-m-d H:m:s');
         $cero = 0;
-        
+
         $cliente = Customer::findFirstByListID($CustomerRefListID);
         if (!$cliente) {
             
@@ -102,7 +103,6 @@ class VentasController extends ControllerBase {
             'action' => 'cabecera',
             'params' => [$numero]
         ]);
-
     }
 
     public function cabeceraAction($refNumber) {
@@ -115,24 +115,35 @@ class VentasController extends ControllerBase {
                 'action' => 'index'
             ]);
         }
+        $this->tag->setDefault("tipofactura", $ticket->getFtipo());
+        $this->tag->setDefault("numerofactura", $ticket->getFnumero());
+        $this->tag->setDefault("frecuencia", $ticket->getFfrecuencia());
+        $this->tag->setDefault("formapago", $ticket->getFplazo());
+        $this->tag->setDefault("tipoguia", $ticket->getGtipo());
+        $this->tag->setDefault("numeroguia", $ticket->getGnumero());
+        $this->tag->setDefault("referencia", $ticket->getReferencia());
+        $this->tag->setDefault("notacomprador", $ticket->getNotasComprador());
+        $this->tag->setDefault("condiciones", $ticket->getTerminosCondiciones());
+        $this->tag->setDefault("fechaemision", $ticket->getTxnDate());
 
         $TxnID = $ticket->TxnID;
         $ruc = $this->session->get('contribuyente');
         $form = new VentaCabeceraForm;
+
         if ($this->request->isPost()) {
 
             if ($form->isValid($this->request->getPost()) != false) {
-                $fecha = date('Y-m-d', strtotime($this->request->getPost('fecha emision')));
+                $fecha = $this->request->getPost('fechaemision');
                 $ticket->Ftipo = $this->request->getPost('tipofactura');
                 $ticket->Gtipo = $this->request->getPost('tipoguia');
                 $ticket->Ffrecuencia = $this->request->getPost('frecuencia');
-                $ticket->Fnumero = $this->request->getPost('numerofactura');
-                $ticket->Gnumero = $this->request->getPost('numeroguia');
+                $ticket->Fnumero = intval($this->request->getPost('numerofactura'));
+                $ticket->Gnumero = intval($this->request->getPost('numeroguia'));
                 $ticket->Fplazo = $this->request->getPost('formapago');
                 $ticket->Referencia = $this->request->getPost('referencia');
                 $ticket->NotasComprador = $this->request->getPost('notacomprador');
                 $ticket->TerminosCondiciones = $this->request->getPost('condiciones');
-                $ticket->TxnDate = $fecha;
+                $ticket->TxnDate = date('Y-m-d', strtotime($fecha));
 
                 if ($ticket->save()) {
 
@@ -141,11 +152,16 @@ class VentasController extends ControllerBase {
                                 'action' => 'productos',
                                 'params' => [$refNumber]
                     ]);
-                }
-                if ($form->getMessages()) {
-                    foreach ($form->getMessages() as $message) {
+                } else {
+                    $messages = $ticket->getMessages();
+                    foreach ($messages as $$message) {
                         $this->flash->error((string) $message);
                     }
+                }
+            }
+            if ($form->getMessages()) {
+                foreach ($form->getMessages() as $message) {
+                    $this->flash->error((string) $message);
                 }
             }
         }
@@ -178,6 +194,25 @@ class VentasController extends ControllerBase {
                 'action' => 'index'
             ]);
         }
+        // array("28" => "Servicios", "29" => "Inventarios", "30" => "No inventario",  "31" => "Terminado",  "32" => "Activo Fijo",  "33" => "Otros"));
+        $ftipo = array();
+        $tipofactura = $ticket->Ftipo;
+        if ($tipofactura === '28') {
+            $destipo = 'Service';
+        } elseif ($tipofactura === '29') {
+            $destipo = 'Inventory';
+        } elseif ($tipofactura === '30') {
+            $destipo = 'NonInventory';
+        } elseif ($tipofactura === '31') {
+            $destipo = 'Assembly';
+        } elseif ($tipofactura === '32') {
+            $destipo = 'Asset';
+        } elseif ($tipofactura === '33') {
+            $destipo = 'OtherCharge';
+        }
+        $ftipo['tipofactura'] = $tipofactura;
+        $ftipo['destipo'] = $destipo;
+        $this->session->set('tipofactura', $ftipo);
         $valores = $this->session->get('valores');
         $ruc = $this->session->get('contribuyente');
 
@@ -203,6 +238,7 @@ class VentasController extends ControllerBase {
         $this->view->ticket = $ticket;
         $this->view->form = $form;
         $this->view->ruc = $ruc;
+        $this->view->ftipo = $destipo;
         $this->view->ticketline = $ticketline;
         $this->tag->setDefault('qty', '');
     }
@@ -226,8 +262,11 @@ class VentasController extends ControllerBase {
         $form = new TicketProductoForm;
         $ticketline = new Aticketline();
         $ticket = Aticket::findFirstByRefNumber($refNumber);
-        $parameters = array('conditions' => '[quickbooks_listid] = :codigoprod:', 'bind' => array('codigoprod' => $this->request->getPost('ItemRefListID')));
-        $item = Items::findFirst($parameters);
+        $parameters = $this->request->getPost('ItemRefListID');
+        $item = Items::findFirstByquickbooks_listid($parameters);
+        if (!$item) {
+            $this->flash->error('TREMENDO ERROR llame urgentemente al Administrador');
+        }
         $data = $this->request->getPost();
         if (!$form->isValid($data)) {
             foreach ($form->getMessages() as $message) {
@@ -240,30 +279,40 @@ class VentasController extends ControllerBase {
             ]);
         }
 
-//        var_dump($this->request->getPost());
+        /**
+         * @tutorial procesar linea de producto
+         * @param string $item->type    El tipo de factura proviene del Quickbooks (inventarios, producto terminado, servicios ..)
+         * @param string $ticketline->Qty Cuando es por servicios o otros cargos se puede facturar solo por valor por lo que la cantidad es 1
+         */
         $clave = $this->claves->guid();
         $fecha = date('Y-m-d H:m:s');
         $ticketline->setTxnLineID($clave);
         $ticketline->setTimeCreated($fecha);
         $ticketline->setTimeModified($fecha);
         $ticketline->setItemRefListID($this->request->getPost("ItemRefListID"));
-        $ticketline->setItemRefFullName($item->sales_desc);
-        $ticketline->setQty($this->request->getPost("qty"));
-        $ticketline->setPrice($item->sales_price);
-        $ticketline->setSubTotal($item->sales_price * $this->request->get('qty'));
-        $ticketline->setIva(($item->sales_price * $this->request->get('qty')) * 12 / 100);
+        $ticketline->setItemRefFullName($item->getsales_desc());
+        if ($item->gettype() === 'Assembly') {
+            $ticketline->setQty($this->request->getPost("qty"));
+            $ticketline->setPrice($item->getsales_price());
+            $ticketline->setSubTotal($item->getsales_price() * $this->request->get('qty'));
+            $ticketline->setIva(($item->getsales_price() * $this->request->get('qty')) * 12 / 100);
+        } else {
+            $ticketline->setQty(1);
+            $ticketline->setPrice($this->request->getPost("qty"));
+            $ticketline->setSubTotal($this->request->get('qty'));
+            $ticketline->setIva(($this->request->get('qty')) * 12 / 100);
+        }
         $ticketline->setIDKEY($ticket->TxnID);
         $ticketline->setEstado('ACTIVO');
 
         $valores['refnumber'] = $refNumber;
-        $valores['subtotal'] = $valores['subtotal'] + $item->sales_price * $this->request->get('qty');
-        $valores['iva'] = $valores['iva'] + ($item->sales_price * $this->request->get('qty')) * 12 / 100;
-//        $this->flash->success("Se ha adicionado un nuevo producto " . " Iva calculado " . $valores['iva'] . " Sub Total de la venta " . $valores['subtotal'] );
+        $valores['subtotal'] = $valores['subtotal'] + $item->getsales_price() * $this->request->get('qty');
+        $valores['iva'] = $valores['iva'] + ($item->getsales_price() * $this->request->get('qty')) * 12 / 100;
         $this->session->set('valores', $valores);
 
         if (!$ticketline->save()) {
             foreach ($ticketline->getMessages() as $message) {
-                $this->flash->error($message);
+                $this->flash->error($message . " codigo " . $this->request->getPost('ItemRefListID') . " Producto " . $item->getsales_desc());
             }
 
             return $this->dispatcher->forward([
@@ -471,9 +520,11 @@ class VentasController extends ControllerBase {
         ]);
     }
 
-    public function finalAction($RefNumber) {
+    public function facturarAction($RefNumber) {
 
         $valores = $this->session->get('valores');
+        $contribuyente = $this->session->get('contribuyente');
+        $ticket = new Aticket();
         $ticket = Aticket::findFirstByRefNumber($valores['refnumber']);
         if (!$ticket) {
             $this->flash->error('Que esta pasando con ' . $valores['refnumber'] . ' o sera ' . $RefNumber);
@@ -484,8 +535,116 @@ class VentasController extends ControllerBase {
 
             return;
         }
+
+
+
+
+        $cliente = new Customer();
+        $cliente = Customer::findFirstByListID($ticket->getCustomerRefListID());
+
+        $invoice = new Invoice();
+        $fecha = date('Y-m-d H:m:s');
+        $invoice->setAppliedAmount($valores['subtotal'] + $valores['iva']);
+        $invoice->setBalanceRemaining($valores['subtotal'] + $valores['iva']);
+        $invoice->setBillAddressAddr1($cliente->getBillAddressAddr1());
+        $invoice->setBillAddressCity($cliente->getBillAddressCity());
+        $invoice->setBillAddressCountry($cliente->getBillAddressCountry());
+        $invoice->setBillAddressPostalCode($cliente->getBillAddressPostalCode());
+        $invoice->setBillAddressState($cliente->getBillAddressState());
+        $invoice->setCustomerRefFullName($cliente->getFullName());
+        $invoice->setCustomerRefListID($cliente->getListID());
+        $invoice->setClassRefFullName($cliente->getClassRefFullName());
+        $invoice->setClassRefListID($cliente->getClassRefListID());
+        $invoice->setCustomField1($cliente->getCustomField1());
+        $invoice->setCustomField2(substr($ticket->getNotasComprador(), 0, 49));
+        $invoice->setCustomField3(substr($ticket->getTerminosCondiciones(), 0, 49));
+        $invoice->setCustomField9($cliente->getCustomField9());
+        $invoice->setCustomField10('SIN IMPRIMIR');
+        $invoice->setCustomField11($cliente->getPhone());
+        $invoice->setCustomField12($cliente->getEmail());
+        $invoice->setCustomField13('sin firmar');
+        $invoice->setCustomField14('sin firmar');
+        $invoice->setCustomField15('SIN FIRMAR');
+        $invoice->setCustomerSalesTaxCodeRefFullName($cliente->getSalesTaxCodeRefFullName());
+        $invoice->setCustomerSalesTaxCodeRefListID($cliente->getSalesTaxCodeRefListID());
+                $formapago = array("0" => "0", "1" => "7", "2" => "15",  "3" => "30",  "4" => "45",  "6" => "60", "7" => "90");
+                $DueDate = date('Y-m-d H:m:s', strtotime($fecha . '+ ' . $formapago[$ticket->getFplazo()] . ' days'));
+        $invoice->setDueDate($DueDate);
+        $EditSequence = rand(1000, 10000000);
+        $invoice->setEditSequence($EditSequence);
+//        $invoice->setItemSalesTaxRefFullName($ItemSalesTaxRef_FullName);
+//        $invoice->setItemSalesTaxRefListID($ItemSalesTaxRef_ListID);
+        $invoice->setMemo($ticket->getReferencia());
+//        $invoice->setOther($Other);
+        $invoice->setRefNumber($ticket->getRefNumber());
+        $invoice->setSalesRepRefFullName($cliente->getSalesRepRefFullName());
+        $invoice->setSalesRepRefListID($cliente->getSalesRepRefListID());
+//        $invoice->setSalesTaxPercentage();
+        $invoice->setSalesTaxTotal($valores['iva']);
+        $invoice->setStatus('GRABADO');
+        $invoice->setSubtotal($valores['subtotal']);
+        $invoice->setTermsRefFullName($cliente->getTermsRefFullName());
+        $invoice->setTermsRefListID($cliente->getTermsRefListID());
+        $invoice->setTimeCreated($fecha);
+        $invoice->setTimeModified($fecha);
+        $invoice->setTxnDate($ticket->getTxnDate());
+        $invoice->setTxnNumber($ticket->getFnumero());
+        $invoice->setTxnID($ticket->getFestab() . '-' . $ticket->getFpunto() . '-' . $ticket->getFnumero());
+
+        if (!$invoice->save()) {
+            foreach ($invoice->getMessages() as $message) {
+                $this->flash->error($message);
+            }
+
+            $this->dispatcher->forward([
+                'controller' => "index",
+                'action' => 'index'
+            ]);
+
+            return;
+        }
+        $parameters = array('conditions' => 'IDKEY = :clave:', 'bind' => array('clave' => $ticket->getTxnID()));
+        $productos = Aticketline::find($parameters);
+        $i = 0;
+        foreach ($productos as $producto) {
+            $item = new Items();
+            $item = Items::findFirstByquickbooks_listid($producto->getItemRefListID());
+            $i++;
+            $invoicedetail = new Invoicelinedetail();
+            $invoicedetail->setTxnLineID($ticket->getFestab() . '-' . $ticket->getFpunto() . '-' . $ticket->getFnumero() . '-' .$i);
+            $invoicedetail->setAmount($producto->getSubTotal());
+            $invoicedetail->setClassRefFullName($cliente->getClassRefFullName());
+            $invoicedetail->setClassRefListID($cliente->getClassRefListID());
+            $invoicedetail->setDescription($item->getname());
+            $invoicedetail->setIDKEY($ticket->getFestab() . '-' . $ticket->getFpunto() . '-' . $ticket->getFnumero());
+            $invoicedetail->setItemRefFullName($item->getfullname());
+            $invoicedetail->setItemRefListID($item->getquickbooks_listid());
+            $invoicedetail->setQuantity($producto->getQty());
+            $invoicedetail->setRate($producto->getPrice());
+            $invoicedetail->setSalesTaxCodeRefFullName($item->getsales_tax_code_ref_fullname());
+            $invoicedetail->setSalesTaxCodeRefListID($item->getsales_tax_code_ref_listid());
+            $invoicedetail->setUnitOfMeasure($item->getunit_of_measure_set_ref_fullname());
+
+            if (!$invoicedetail->save()) {
+                foreach ($invoicedetail->getMessages() as $message) {
+                    $this->flash->error($message);
+                }
+
+                $this->dispatcher->forward([
+                    'controller' => "index",
+                    'action' => 'index'
+                ]);
+
+                return;
+            }
+        }
+        
+        /**
+         *  Una vez facturado se procede a actualizar el pedido directo en los archivos de pedidos aticket
+         */
         $ticket->Iva = $valores['iva'];
         $ticket->SubTotal = $valores['subtotal'];
+        $ticket->setEstado("FACTURADO");
         if (!$ticket->save()) {
             foreach ($ticket->getMessages() as $message) {
                 $this->flash->error($message);
@@ -498,452 +657,13 @@ class VentasController extends ControllerBase {
 
             return;
         }
-
-        $this->RefNumber = $RefNumber;
-        $this->view->subtotal = $valores['subtotal'];
-        $this->view->iva = $valores['iva'];
-        $this->view->apagar = $valores['subtotal'] + $valores['iva'];
-        $form = new FinalForm;
-        $this->view->form = $form;
-    }
-
-    public function clienteAction($ListID) {
-
-        $cliente = Customer::findFirstByListID($ListID);
-        $this->session->set('cliente', $cliente);
-        $valores = $this->session->get('valores');
-        $ticket = Aticket::findFirstByRefNumber($valores['refnumber']);
-        $ticket->Iva = $valores['iva'];
-        $ticket->SubTotal = $valores['subtotal'];
-        if (!$ticket->save()) {
-            foreach ($ticket->getMessages() as $message) {
-                $this->flash->error($message);
-            }
-
-            $this->dispatcher->forward([
-                'controller' => "index",
-                'action' => 'index'
-            ]);
-
-            return;
-        }
-
-        $this->flash->warning($RefNumber . ' Iva calculado ' . $valores['iva'] . ' Precio Total calculado ' . $valores['subtotal']);
-
-        $this->RefNumber = $RefNumber;
-        $this->view->codigocliente = $cliente->ListID;
-        $this->view->nombrecliente = $cliente->Name;
-        $this->view->direccioncliente = $cliente->BillAddress_Addr1 . ', ' . $cliente->BillAddress_City;
-        $this->view->ruccliente = $cliente->AccountNumber;
-        $this->view->apagar = $valores['subtotal'] + $valores['iva'];
-        $form = new FinalForm;
-        $this->view->form = $form;
-    }
-
-    public function inoutAction() {
-        /**
-         *      controlacceso revisa que este un usuario logeado, que el contribuyente este seleccionado
-         *      que tenga una licencia valida
-         *      se le debe aumentar el seguimiento del proceso de ventas en la caja primaria y en la caja secundaria
-         */
-        $estado = $this->claves->controlacceso();
-        if ($estado === 'OK') {
-            
-        } else {
-
-            $this->dispatcher->forward([
-                "controller" => "index",
-                "action" => "index"
-            ]);
-
-            return;
-        }
-        $pendiente = $this->session->get('cajaabierta');
-        if ($pendiente['estado'] === 'ABIERTO') {
-            $this->flash->notice('Tiene una caja sin cerrar' . ' ESTADO: ' . $pendiente['estado'] . ' NRO. CAJA: ' . $pendiente['RefNumber']);
-            return $this->dispatcher->forward([
-                        "action" => "index"
-            ]);
-        }
-        $ruc = $this->session->get('contribuyente');
-        $auth = $this->session->get('auth');
-
-        $tipocod = 'NUM' . $ruc['estab'] . $ruc['punto'];
-        $calificado = 'CAJA';
-        $numero = $this->claves->cajaabierta($tipocod, $calificado);
-        $refnumber = $ruc['estab'] . $ruc['punto'] . trim($numero);
-
-        $cedula = $auth['numeroId'];
-        $empleado = Employee::findFirstByAccountNumber($cedula);
-        $clave = $this->claves->guid();
-        $fecha = date('Y-m-d H:m:s');
-        $cero = 0;
-
-        $caja = new Cashier();
-        $caja->setTxnID($clave);
-        $caja->setTimeCreated($fecha);
-        $caja->setTimeModified($fecha);
-        $caja->setEstab($ruc['estab']);
-        $caja->setPunto($ruc['punto']);
-        $caja->setEditSequence(rand(1000, 2000000));
-        $caja->setRefNumber($refnumber);
-        $caja->setTxnDate(date('Y-m-d', strtotime($fecha)));
-        $caja->setEmployeeRefListID($empleado->ListID);
-        $caja->setEmployeeRefFullName($empleado->Name);
-        if (!$caja->save()) {
-            foreach ($caja->getMessages() as $message) {
-                $this->flash->error($message);
-            }
-
-            $this->dispatcher->forward([
-                'controller' => "index",
-                'action' => 'index'
-            ]);
-
-            return;
-        }
-
-        $form = new CashierForm;
-        $this->view->form = $form;
-        $this->view->caja = $caja;
-    }
-
-    public function aprobarcajaAction($refnumber, $opcion) {
-
-        if (!$this->request->isPost()) {
-            $this->flash->error('Error grave llamar al webmaster NO HAY POST');
-            $this->dispatcher->forward([
-                'controller' => "index",
-                'action' => 'index'
-            ]);
-
-            return;
-        }
-
-        $estado = 'GRABADO';
-        $parameters = array('conditions' => '[RefNumber] = :clave: AND [Estado] = :estado:', 'bind' => array('clave' => $refnumber, 'estado' => $estado));
-        $caja = Cashier::findFirst($parameters);
-        if (!$caja) {
-            $this->flash->error('Error grave llamar al webmaster NO HAY REFERENCIA');
-            $this->dispatcher->forward([
-                'controller' => "index",
-                'action' => 'index'
-            ]);
-
-            return;
-        }
-
-
-        $caja->setEfectivo($this->request->getPost('Efectivo'));
-        $caja->setCheques($this->request->getPost('Cheques'));
-        $caja->setDepositos($this->request->getPost('Depositos'));
-        $caja->setCierreAuditor($this->request->getPost('CierreAuditor'));
-        $caja->setCierreNotas($this->request->getPost('CierreNotas'));
-        $caja->setEstado('ABIERTO');
-        $this->session->set('cajaabierta', array(
-            'estado' => 'ABIERTO',
-            'RefNumber' => $refnumber
-        ));
-
-        $this->flash->notice('Caja Abierta');
-        if (!$caja->save()) {
-            foreach ($caja->getMessages() as $message) {
-                $this->flash->error($message);
-            }
-
-            $this->dispatcher->forward([
-                'controller' => "index",
-                'action' => 'index'
-            ]);
-
-            return;
-        }
-
-        $this->dispatcher->forward([
-            'controller' => "index",
-            'action' => 'index'
-        ]);
-
-        return;
-    }
-
-    public function cerrarcajaAction($refnumber, $opcion) {
-
-        if (!$this->request->isPost()) {
-            $this->flash->error('Error grave llamar al webmaster NO HAY POST');
-            $this->dispatcher->forward([
-                'controller' => "index",
-                'action' => 'index'
-            ]);
-
-            return;
-        }
-
-        $estado = 'ABIERTO';
-        $parameters = array('conditions' => '[RefNumber] = :clave: AND [Estado] = :estado:', 'bind' => array('clave' => $refnumber, 'estado' => $estado));
-        $caja = Cashier::findFirst($parameters);
-        if (!$caja) {
-            $this->flash->error('Error grave llamar al webmaster NO HAY REFERENCIA');
-            $this->dispatcher->forward([
-                'controller' => "index",
-                'action' => 'index'
-            ]);
-
-            return;
-        }
-
-        $caja->setEstado('CERRADO');
-        $this->session->remove('cajaabierta');
-        $this->flash->notice('Caja Cerrada');
-        if (!$caja->save()) {
-            foreach ($caja->getMessages() as $message) {
-                $this->flash->error($message);
-            }
-
-            $this->dispatcher->forward([
-                'controller' => "index",
-                'action' => 'index'
-            ]);
-
-            return;
-        }
-        $ruc = $this->session->get('contribuyente');
-        $auth = $this->session->get('auth');
-        $calculado = $this->session->get('calculado');
-        $cedula = $auth['numeroId'];
-        $empleado = Employee::findFirstByAccountNumber($cedula);
-        $clave = $this->claves->guid();
-        $fecha = date('Y-m-d H:m:s');
-
-        $caja = new Cashier();
-        $caja->setTxnID($clave);
-        $caja->setTimeCreated($fecha);
-        $caja->setTimeModified($fecha);
-        $caja->setEstab($ruc['estab']);
-        $caja->setPunto($ruc['punto']);
-        $caja->setEditSequence(rand(1000, 2000000));
-        $caja->setRefNumber($refnumber);
-        $caja->setTxnDate(date('Y-m-d', strtotime($fecha)));
-        $caja->setEmployeeRefListID($empleado->ListID);
-        $caja->setEmployeeRefFullName($empleado->Name);
-        $caja->setEfectivo($this->request->getPost('Efectivo'));
-        $caja->setCheques($this->request->getPost('Cheques'));
-        $caja->setDepositos($this->request->getPost('Depositos'));
-        $caja->setCierreAuditor($this->request->getPost('CierreAuditor'));
-        $caja->setCierreNotas($this->request->getPost('CierreNotas'));
-        $caja->setEstado('CERRADO');
-        $caja->setOperacion('AUDITADO');
-        if (!$caja->save()) {
-            foreach ($caja->getMessages() as $message) {
-                $this->flash->error($message);
-            }
-        }
-
-        $diferencias = $calculado['efectivoi'] + $calculado['chequesi'] + $calculado['depositosi'] + $calculado['efectivo'] + $calculado['cheques'] + $calculado['depositos'] - ($this->request->getPost('Efectivo') + $this->request->getPost('Cheques') + $this->request->getPost('Depositos'));
-        $this->view->diferencias = $diferencias;
-        $this->view->refnumber = $refnumber;
-    }
-
-    public function cerrarAction() {
-        /**
-         * 
-         */
-        $estado = $this->claves->controlacceso();
-        if ($estado === 'OK') {
-            
-        } else {
-
-            $this->dispatcher->forward([
-                "controller" => "index",
-                "action" => "index"
-            ]);
-
-            return;
-        }
-        $pendiente = $this->session->get('cajaabierta');
-        if ($pendiente['estado'] != 'ABIERTO') {
-            $this->flash->notice('No tiene una caja abierta' . ' ESTADO: ' . $pendiente['estado'] . ' NRO. CAJA: ' . $pendiente['RefNumber']);
-            return $this->dispatcher->forward([
-                        "action" => "index"
-            ]);
-        }
-        $calculado = array();
-        $refnumber = $pendiente['RefNumber'];
-        $estado = 'ABIERTO';
-        $parameters = array('conditions' => '[RefNumber] = :clave: AND [Estado] = :estado:', 'bind' => array('clave' => $refnumber, 'estado' => $estado));
-        $caja = Cashier::findFirst($parameters);
-        if (!$caja) {
-            $this->flash->error('Error grave llamar al webmaster NO HAY REFERENCIA');
-            $this->dispatcher->forward([
-                'controller' => "index",
-                'action' => 'index'
-            ]);
-
-            return;
-        }
-        /**
-         * Procesa ventas, caja inicial, eventualmente depositos
-         * Calcula total en caja = caja inicial +- ventas + depositos
-         */
-        $calculado['efectivoi'] = $caja->getEfectivo();
-        $calculado['chequesi'] = $caja->getCheques();
-        $calculado['depositosi'] = $caja->getDepositos();
-        $fecha = $caja->getTxnDate();
-        $blanco = 'n/a';
-        $vtasparams = array(
-            'conditions' => '[TxnDate] >= :fecha: AND [NroCaja] = :blanco:',
-            'bind' => array(
-                'fecha' => $fecha,
-                'blanco' => $blanco
-            )
-        );
-        $pagosparams = array(
-            'conditions' => '[TxnDate] >= :fecha: AND [CustomField8] = :blanco:',
-            'bind' => array(
-                'fecha' => $fecha,
-                'blanco' => $blanco
-            )
-        );
-
-
-        $pagos = Receivepayment::find($pagosparams);
-        foreach ($pagos as $recibo) {
-            if ($recibo->DepositNumber != 'n/a') {
-                $calculado['depositos'] = $calculado['depositos'] + $recibo->TotalAmount;
-            } elseif ($recibo->CheckAmount > 0) {
-                $calculado['cheques'] = $calculado['cheques'] + $recibo->CheckAmount;
-            } else {
-                $calculado['efectivo'] = $calculado['efectivo'] + $recibo->TotalAmount;
-            }
-        }
-
-        $ventas = Aticket::find($vtasparams);
-        foreach ($ventas as $tipocliente) {
-            if ($tipocliente->getSingle() === 1) {
-                $calculado['consumidor'] = $calculado['consumidor'] + $tipocliente->getSubTotal() + $tipocliente->getIva();
-            } else {
-                $calculado['cliente'] = $calculado['cliente'] + $tipocliente->getSubTotal() + $tipocliente->getIva();
-            }
-        }
-
-        $ruc = $this->session->get('contribuyente');
-        $auth = $this->session->get('auth');
-        $cedula = $auth['numeroId'];
-        $empleado = Employee::findFirstByAccountNumber($cedula);
-        $clave = $this->claves->guid();
-        $fecha = date('Y-m-d H:m:s');
-
-        $caja = new Cashier();
-        $caja->setTxnID($clave);
-        $caja->setTimeCreated($fecha);
-        $caja->setTimeModified($fecha);
-        $caja->setEstab($ruc['estab']);
-        $caja->setPunto($ruc['punto']);
-        $caja->setEditSequence(rand(1000, 2000000));
-        $caja->setRefNumber($refnumber);
-        $caja->setTxnDate(date('Y-m-d', strtotime($fecha)));
-        $caja->setEmployeeRefListID($empleado->ListID);
-        $caja->setEmployeeRefFullName($empleado->Name);
-        $caja->setEfectivo($calculado['efectivo']);
-        $caja->setCheques($calculado['cheques']);
-        $caja->setDepositos($calculado['depositos']);
-        $caja->setCierreAuditor('Pagos calculados');
-        $caja->setCierreNotas($empleado->Name);
-        $caja->setEstado('CERRADO');
-        $caja->setOperacion('CALCULADO');
-        if (!$caja->save()) {
-            foreach ($caja->getMessages() as $message) {
-                $this->flash->error($message);
-            }
-        }
-        $form = new CashierForm;
-        $this->view->form = $form;
-        $this->view->caja = $caja;
-        $this->view->calculado = $calculado;
-    }
-
-    public function imprimecajaAction($refnumber) {
-
-        $parameters = array(
-            'conditions' => 'RefNumber = :refnumber:',
-            'bind' => array(
-                'refnumber' => $refnumber
-            )
-        );
-
-        $cajas = Cashier::find($parameters);
-
-        if (!$cajas) {
-            $this->flash->error('No existe una caja con esta referencia ' . $refnumber);
-            $this->dispatcher->forward([
-                "controller" => "index",
-                "action" => "index"
-            ]);
-
-            return;
-        }
-
-        $movimientos = array();
-        $na = 0;
-        $nl = 8;
-        $movimientos[1]['cia'] = 'HELADERIAS COFRUNAT CIA. LTDA.';
-        $movimientos[2]['Reporte'] = 'RESUMEN DE VENTAS POR CAJA';
-
-        $registros = count($cajas);
-//        $this->flash->notice('Numero de registros generados ' . $registros);
-        foreach ($cajas as $caja) {
-            switch ($caja->getOperacion()) {
-                case 'INICIO':
-                    $movimientos[3]['caja']['refnumber'] = $caja->getRefNumber();
-                    $movimientos[3]['caja']['txndate'] = date('d-m-Y', strtotime($caja->getTxnDate()));
-                    $movimientos[3]['caja']['efectivo'] = number_format($caja->getEfectivo(), '2', ',', '.');
-                    $movimientos[3]['caja']['cheques'] = number_format($caja->getCheques(), '2', ',', '.');
-                    $movimientos[3]['caja']['depositos'] = number_format($caja->getDepositos(), '2', ',', '.');
-                    break;
-
-                case 'CALCULADO':
-                    $movimientos[4]['caja']['refnumber'] = $caja->getRefNumber();
-                    $movimientos[4]['caja']['txndate'] = date('d-m-Y', strtotime($caja->getTxnDate()));
-                    $movimientos[4]['caja']['efectivo'] = number_format($caja->getEfectivo(), '2', ',', '.');
-                    $movimientos[4]['caja']['cheques'] = number_format($caja->getCheques(), '2', ',', '.');
-                    $movimientos[4]['caja']['depositos'] = number_format($caja->getDepositos(), '2', ',', '.');
-                    break;
-
-                case 'AUDITADO':
-                    $movimientos[5]['caja']['refnumber'] = $caja->getRefNumber();
-                    $movimientos[5]['caja']['txndate'] = date('d-m-Y', strtotime($caja->getTxnDate()));
-                    $movimientos[5]['caja']['efectivo'] = number_format($caja->getEfectivo(), '2', ',', '.');
-                    $movimientos[5]['caja']['cheques'] = number_format($caja->getCheques(), '2', ',', '.');
-                    $movimientos[5]['caja']['depositos'] = number_format($caja->getDepositos(), '2', ',', '.');
-                    break;
-
-                default:
-                    break;
-            }
-        }
-        $estado = 'PAGADO';
-        $faltadefinir = 'n/a';
-        $parameters = array(
-            'conditions' => 'CustomField8 = :refnumber:',
-            'bind' => array(
-                'refnumber' => $faltadefinir
-            )
-        );
-        $pagos = Receivepayment::find($parameters);
-
-        $registros = count($pagos);
-//        $this->flash->notice('Numero de registros generados ' . $registros);
-        foreach ($pagos as $pago) {
-            $movimientos[$nl]['detalle']['fecha'] = date('d-m-Y', strtotime($pago->TxnDate));
-            $movimientos[$nl]['detalle']['refnumber'] = $pago->getRefNumber();
-            $movimientos[$nl]['detalle']['cliente'] = $pago->getCustomerRef_FullName();
-            $movimientos[$nl]['detalle']['subtotal'] = number_format($pago->getTotalAmount() * 100 / 112, 2, ',', '.');
-            $movimientos[$nl]['detalle']['iva'] = number_format($pago->getTotalAmount() - ($pago->getTotalAmount() * 100 / 112), 2, '.', '.');
-            $movimientos[$nl]['detalle']['total'] = number_format($pago->getTotalAmount(), 2, ',', '.');
-            $nl++;
-        }
-
-        $this->view->movimientos = $movimientos;
+        
+        $this->session->remove('pendiente');
+        $this->view->invoice = $invoice;
+        $this->view->contribuyente = $contribuyente;
+        $this->view->cliente = $cliente;
+        $this->view->ticket = $ticket;
+        $this->view->productos = $productos;
     }
 
 }
