@@ -1,5 +1,7 @@
 <?php
 
+namespace onlinenew\validators;
+
 use Phalcon\Validation;
 use Phalcon\Validation\Message;
 use Phalcon\Validation\Validator;
